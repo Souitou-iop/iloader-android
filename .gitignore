@@ -27,3 +27,11 @@ keys
 *.mobileprovision
 
 dockerfile
+# Android (native Compose app)
+android/.gradle
+android/.kotlin
+android/build
+android/app/build
+android/local.properties
+# Cargo workspace build output
+/target/

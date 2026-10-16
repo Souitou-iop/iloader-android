@@ -171,7 +171,10 @@ mod tests {
             location_id: 1,
             speed: 480_000_000,
         };
-        let id = hub.add_device(Arc::new(device), info.clone()).await.unwrap();
+        let id = hub
+            .add_device(Arc::new(device), info.clone())
+            .await
+            .unwrap();
         AttachedDevice { id, info }
     }
 
@@ -307,7 +310,9 @@ mod tests {
         lockdownd.pending.store(1, Ordering::SeqCst);
         let device = attach(&hub, Some(lockdownd)).await;
         spawn(&hub, device);
-        let record = hub.wait_for_pair_record(UDID, Duration::from_secs(60)).await;
+        let record = hub
+            .wait_for_pair_record(UDID, Duration::from_secs(60))
+            .await;
         assert!(record.is_some());
     }
 
@@ -315,9 +320,17 @@ mod tests {
     async fn reading_the_record_does_not_wait_when_nothing_is_pairing() {
         let hub = hub();
         let started = tokio::time::Instant::now();
-        assert!(hub.wait_for_pair_record(UDID, Duration::from_secs(10)).await.is_none());
+        assert!(
+            hub.wait_for_pair_record(UDID, Duration::from_secs(10))
+                .await
+                .is_none()
+        );
         hub.set_pair_state(UDID, PairState::Denied);
-        assert!(hub.wait_for_pair_record(UDID, Duration::from_secs(10)).await.is_none());
+        assert!(
+            hub.wait_for_pair_record(UDID, Duration::from_secs(10))
+                .await
+                .is_none()
+        );
         assert!(started.elapsed() < Duration::from_secs(1));
     }
 
@@ -325,7 +338,11 @@ mod tests {
     async fn reading_the_record_gives_up_after_the_timeout() {
         let hub = hub();
         hub.set_pair_state(UDID, PairState::WaitingForTrust);
-        assert!(hub.wait_for_pair_record(UDID, Duration::from_millis(100)).await.is_none());
+        assert!(
+            hub.wait_for_pair_record(UDID, Duration::from_millis(100))
+                .await
+                .is_none()
+        );
     }
 
     #[test]

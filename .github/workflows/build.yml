@@ -49,7 +49,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            src-tauri/target
+            target
             node_modules
           key: ${{ matrix.platform }}-iloader-${{ hashFiles('**/Cargo.lock', 'package-lock.json') }}
           restore-keys: |
@@ -84,14 +84,14 @@ jobs:
 
       - name: Clean old bundles
         if: matrix.platform != 'macos-latest'
-        run: bunx rimraf src-tauri/target/release/bundle
+        run: bunx rimraf target/release/bundle
 
       - name: Clean old bundles
         if: matrix.platform == 'macos-latest'
         run: |
-          bunx rimraf src-tauri/target/aarch64-apple-darwin/release/bundle
-          bunx rimraf src-tauri/target/x86_64-apple-darwin/release/bundle
-          bunx rimraf src-tauri/target/universal-apple-darwin/release/bundle
+          bunx rimraf target/aarch64-apple-darwin/release/bundle
+          bunx rimraf target/x86_64-apple-darwin/release/bundle
+          bunx rimraf target/universal-apple-darwin/release/bundle
 
       - name: Export Apple signing secrets (release only)
         if: matrix.platform == 'macos-latest' && env.HAVE_SIGNING_SECRETS == 'true' && github.event_name == 'release'
@@ -116,7 +116,7 @@ jobs:
       - name: Notarize & Staple DMG (release only)
         if: matrix.platform == 'macos-latest' && env.HAVE_NOTARIZE_SECRETS == 'true' && github.event_name == 'release'
         run: |
-          DMG_PATH=$(find src-tauri/target -name "*.dmg" -print -quit)
+          DMG_PATH=$(find target -name "*.dmg" -print -quit)
           if [ -z "$DMG_PATH" ]; then
             echo "No DMG found to notarize" >&2
             exit 1
@@ -134,49 +134,49 @@ jobs:
         if: matrix.platform == 'macos-latest'
         with:
           name: macos-dmg-universal
-          path: ${{ github.workspace }}/src-tauri/target/**/release/bundle/**/*.dmg
+          path: ${{ github.workspace }}/target/**/release/bundle/**/*.dmg
 
       - name: Upload Linux DEB
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04' && matrix.args == '--bundles deb'
         with:
           name: linux-deb
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.deb
+          path: ${{ github.workspace }}/target/release/bundle/**/*.deb
 
       - name: Upload Linux RPM
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04' && matrix.args == '--bundles rpm'
         with:
           name: linux-rpm
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.rpm
+          path: ${{ github.workspace }}/target/release/bundle/**/*.rpm
 
       - name: Upload Linux AppImage
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04' && matrix.args == '--bundles appimage'
         with:
           name: linux-appimage
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage
+          path: ${{ github.workspace }}/target/release/bundle/**/*.AppImage
 
       - name: Upload Linux DEB (ARM)
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04-arm' && matrix.args == '--bundles deb'
         with:
           name: linux-deb-arm
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.deb
+          path: ${{ github.workspace }}/target/release/bundle/**/*.deb
 
       - name: Upload Linux RPM (ARM)
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04-arm' && matrix.args == '--bundles rpm'
         with:
           name: linux-rpm-arm
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.rpm
+          path: ${{ github.workspace }}/target/release/bundle/**/*.rpm
 
       - name: Upload Linux AppImage (ARM)
         uses: actions/upload-artifact@v7
         if: matrix.platform == 'ubuntu-22.04-arm' && matrix.args == '--bundles appimage'
         with:
           name: linux-appimage-arm
-          path: ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage
+          path: ${{ github.workspace }}/target/release/bundle/**/*.AppImage
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v7
@@ -184,7 +184,7 @@ jobs:
         with:
           name: windows-exe
           path: |
-            ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.exe
+            ${{ github.workspace }}/target/release/bundle/**/*.exe
 
   mark-latest:
     needs: build

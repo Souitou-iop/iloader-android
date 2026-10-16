@@ -145,7 +145,10 @@ impl Hub {
             if let Some(record) = self.pairs().read(udid) {
                 return Some(record);
             }
-            if !self.pair_state(udid).is_some_and(|state| state.in_progress()) {
+            if !self
+                .pair_state(udid)
+                .is_some_and(|state| state.in_progress())
+            {
                 return None;
             }
             match tokio::time::timeout_at(deadline, events.recv()).await {

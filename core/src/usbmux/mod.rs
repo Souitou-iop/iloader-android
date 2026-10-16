@@ -15,7 +15,8 @@
 //!
 //! `link` drives a session with a real USB pipe and `hub` keeps track of the
 //! attached devices. `server` makes them look like `usbmuxd` to the rest of
-//! the app, and `android` connects it all to the Kotlin USB plugin.
+//! the app. On Android the core's `attach_usb_device` connects it all to the
+//! app's USB host code.
 //!
 //! The wire format and state machine follow the behaviour of the reference
 //! `usbmuxd` daemon, which is the only implementation real devices are known
@@ -24,8 +25,6 @@
 // Only the Android build wires this in; elsewhere it is exercised by tests.
 #![allow(dead_code)]
 
-#[cfg(target_os = "android")]
-pub mod android;
 pub mod hub;
 mod link;
 pub mod packet;
@@ -38,6 +37,7 @@ mod session;
 mod testutil;
 pub mod usbfs;
 
+use std::path::Path;
 use std::sync::OnceLock;
 
 use idevice::usbmuxd::UsbmuxdAddr;
@@ -53,6 +53,31 @@ pub fn addr_override() -> Option<UsbmuxdAddr> {
 #[cfg_attr(not(target_os = "android"), allow(dead_code))]
 pub fn set_addr_override(addr: UsbmuxdAddr) {
     let _ = ADDR_OVERRIDE.set(addr);
+}
+
+/// Paths of unix sockets have to fit in `sockaddr_un.sun_path`.
+const MAX_SOCKET_PATH: usize = 100;
+
+/// Binds a unix socket only this app can reach, which matters because
+/// pairing records give full control of the iPhone.
+#[cfg(unix)]
+pub fn bind_private_socket(path: &Path) -> std::io::Result<std::os::unix::net::UnixListener> {
+    use std::os::unix::fs::PermissionsExt;
+
+    if path.as_os_str().len() > MAX_SOCKET_PATH {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "socket path is too long",
+        ));
+    }
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let _ = std::fs::remove_file(path);
+    let listener = std::os::unix::net::UnixListener::bind(path)?;
+    std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
+    listener.set_nonblocking(true)?;
+    Ok(listener)
 }
 
 #[allow(unused_imports)]
