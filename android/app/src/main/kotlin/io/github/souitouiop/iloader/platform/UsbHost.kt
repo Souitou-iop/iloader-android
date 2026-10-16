@@ -106,7 +106,7 @@ class UsbHost(context: Context, private val sink: UsbSink) {
      * Opens the device, switches to the configuration that has the usbmux
      * interface if needed, claims the interface and attaches it to the core.
      */
-    private suspend fun attach(device: UsbDevice) = mutex.withLock {
+    private suspend fun attach(device: UsbDevice): Unit = mutex.withLock {
         val name = device.deviceName
         if (synchronized(open) { open.containsKey(name) } || usb.deviceList[name] == null) return
         val mux = findMuxInterface(device)
@@ -119,7 +119,9 @@ class UsbHost(context: Context, private val sink: UsbSink) {
             Log.w(TAG, "could not open $name")
             return
         }
-        if (!isInActiveConfiguration(device, mux.usbInterface) && !connection.setConfiguration(mux.configuration)) {
+        val active = activeConfiguration(connection)
+        Log.i(TAG, "$name: configuration $active is active; usbmux is interface ${mux.usbInterface.id} of configuration ${mux.configuration.id}")
+        if (active != mux.configuration.id && !connection.setConfiguration(mux.configuration)) {
             Log.w(TAG, "could not select USB configuration ${mux.configuration.id}")
             connection.close()
             return
@@ -165,49 +167,62 @@ class UsbHost(context: Context, private val sink: UsbSink) {
 
     /**
      * iPhones expose several configurations and only some contain the usbmux
-     * interface. Like usbmuxd, look from the last one down.
+     * interface. Of those, take the one with the fewest interfaces: the larger
+     * ones add a USB Ethernet interface that Android would bind a network
+     * driver to for no benefit.
      */
     private fun findMuxInterface(device: UsbDevice): MuxInterface? {
+        var best: MuxInterface? = null
+        var bestSize = Int.MAX_VALUE
         for (c in device.configurationCount - 1 downTo 0) {
             val configuration = device.getConfiguration(c)
-            for (i in 0 until configuration.interfaceCount) {
-                val intf = configuration.getInterface(i)
-                if (intf.interfaceClass != INTERFACE_CLASS ||
-                    intf.interfaceSubclass != INTERFACE_SUBCLASS ||
-                    intf.interfaceProtocol != INTERFACE_PROTOCOL ||
-                    intf.endpointCount != 2
-                ) {
-                    continue
-                }
-                var epIn: UsbEndpoint? = null
-                var epOut: UsbEndpoint? = null
-                for (e in 0 until intf.endpointCount) {
-                    val endpoint = intf.getEndpoint(e)
-                    if (endpoint.type != UsbConstants.USB_ENDPOINT_XFER_BULK) continue
-                    if (endpoint.direction == UsbConstants.USB_DIR_IN) epIn = endpoint else epOut = endpoint
-                }
-                if (epIn != null && epOut != null) {
-                    return MuxInterface(configuration, intf, epIn, epOut)
-                }
+            val size = (0 until configuration.interfaceCount)
+                .map { configuration.getInterface(it).id }
+                .toSet()
+                .size
+            if (size >= bestSize) continue
+            val found = findMuxInterface(configuration) ?: continue
+            best = found
+            bestSize = size
+        }
+        return best
+    }
+
+    private fun findMuxInterface(configuration: UsbConfiguration): MuxInterface? {
+        for (i in 0 until configuration.interfaceCount) {
+            val intf = configuration.getInterface(i)
+            if (intf.interfaceClass != INTERFACE_CLASS ||
+                intf.interfaceSubclass != INTERFACE_SUBCLASS ||
+                intf.interfaceProtocol != INTERFACE_PROTOCOL ||
+                intf.endpointCount != 2
+            ) {
+                continue
+            }
+            var epIn: UsbEndpoint? = null
+            var epOut: UsbEndpoint? = null
+            for (e in 0 until intf.endpointCount) {
+                val endpoint = intf.getEndpoint(e)
+                if (endpoint.type != UsbConstants.USB_ENDPOINT_XFER_BULK) continue
+                if (endpoint.direction == UsbConstants.USB_DIR_IN) epIn = endpoint else epOut = endpoint
+            }
+            if (epIn != null && epOut != null) {
+                return MuxInterface(configuration, intf, epIn, epOut)
             }
         }
         return null
     }
 
-    /** `UsbDevice.getInterface` only lists the interfaces of the active configuration. */
-    private fun isInActiveConfiguration(device: UsbDevice, wanted: UsbInterface): Boolean {
-        for (i in 0 until device.interfaceCount) {
-            val active = device.getInterface(i)
-            if (active.id == wanted.id &&
-                active.alternateSetting == wanted.alternateSetting &&
-                active.interfaceClass == wanted.interfaceClass &&
-                active.interfaceSubclass == wanted.interfaceSubclass &&
-                active.interfaceProtocol == wanted.interfaceProtocol
-            ) {
-                return true
-            }
-        }
-        return false
+    /**
+     * Asks the device which configuration is active (the standard
+     * GET_CONFIGURATION request). `UsbDevice.getInterface` cannot tell: on
+     * recent Android versions it lists the interfaces of every configuration.
+     */
+    private fun activeConfiguration(connection: UsbDeviceConnection): Int? {
+        val value = ByteArray(1)
+        val read = connection.controlTransfer(
+            UsbConstants.USB_DIR_IN, REQUEST_GET_CONFIGURATION, 0, 0, value, value.size, CONTROL_TIMEOUT_MS,
+        )
+        return if (read == 1) value[0].toInt() and 0xff else null
     }
 
     /** Same product id range usbmuxd accepts. */
@@ -231,5 +246,7 @@ class UsbHost(context: Context, private val sink: UsbSink) {
         const val INTERFACE_CLASS = 255
         const val INTERFACE_SUBCLASS = 254
         const val INTERFACE_PROTOCOL = 2
+        const val REQUEST_GET_CONFIGURATION = 8
+        const val CONTROL_TIMEOUT_MS = 1000
     }
 }
