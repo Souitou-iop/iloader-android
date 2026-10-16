@@ -134,11 +134,12 @@ async fn attempt(hub: &Hub, device: &AttachedDevice, host_id: &str) -> Attempt {
             Ok(record) => Attempt::Paired(record),
             Err(err) => Attempt::Fatal(err.to_string()),
         },
-        Err(IdeviceError::PairingDialogResponsePending) => Attempt::Pending,
-        Err(IdeviceError::UserDeniedPairing) => Attempt::Denied,
-        Err(IdeviceError::PasswordProtected) => {
-            Attempt::Fatal("the device is locked with a passcode: unlock it and replug".into())
+        // A locked device only shows the trust dialog once it is unlocked,
+        // which is the usual state right after plugging it in; keep asking.
+        Err(IdeviceError::PairingDialogResponsePending | IdeviceError::PasswordProtected) => {
+            Attempt::Pending
         }
+        Err(IdeviceError::UserDeniedPairing) => Attempt::Denied,
         Err(err) => {
             warn!("lockdown pair failed: {err}");
             Attempt::Retry(err.to_string())
@@ -264,14 +265,32 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn a_passcode_protected_device_fails_without_retrying() {
+    async fn a_locked_device_is_paired_once_unlocked_and_trusted() {
         let hub = hub();
         let lockdownd = Arc::new(Lockdownd::default());
-        lockdownd.passcode.store(true, Ordering::SeqCst);
+        lockdownd.locked.store(2, Ordering::SeqCst);
+        lockdownd.pending.store(1, Ordering::SeqCst);
         let device = attach(&hub, Some(lockdownd.clone())).await;
+        let mut events = hub.subscribe_pairing();
+
         spawn(&hub, device);
-        assert!(matches!(finished(&hub).await, PairState::Failed(_)));
-        assert_eq!(lockdownd.pair_requests.load(Ordering::SeqCst), 1);
+        assert_eq!(finished(&hub).await, PairState::Paired);
+
+        let mut seen = Vec::new();
+        while let Ok(event) = events.try_recv() {
+            seen.push(event.state);
+        }
+        assert_eq!(
+            seen,
+            vec![
+                PairState::Pairing,
+                PairState::WaitingForTrust,
+                PairState::Paired
+            ]
+        );
+        // Two answers "locked", one "dialog open", then success.
+        assert_eq!(lockdownd.pair_requests.load(Ordering::SeqCst), 4);
+        assert!(hub.pairs().read(UDID).is_some());
     }
 
     #[tokio::test]

@@ -34,8 +34,9 @@ pub struct Lockdownd {
     pub pending: AtomicU32,
     /// Answer `Pair` with `UserDeniedPairing`.
     pub deny: AtomicBool,
-    /// Answer `Pair` with `PasswordProtected`.
-    pub passcode: AtomicBool,
+    /// How many `Pair` requests are answered `PasswordProtected` (the device
+    /// is locked) before the trust dialog shows.
+    pub locked: AtomicU32,
     /// Number of `Pair` requests seen.
     pub pair_requests: AtomicU32,
     /// The `PairRecord` of the last `Pair` request.
@@ -66,7 +67,9 @@ impl Lockdownd {
                     *self.last_record.lock().unwrap() = Some(record.clone());
                 }
                 let pending = self.pending.load(Ordering::SeqCst);
-                if self.passcode.load(Ordering::SeqCst) {
+                let locked = self.locked.load(Ordering::SeqCst);
+                if locked > 0 {
+                    self.locked.store(locked - 1, Ordering::SeqCst);
                     error(&mut reply, "PasswordProtected");
                 } else if self.deny.load(Ordering::SeqCst) {
                     error(&mut reply, "UserDeniedPairing");
