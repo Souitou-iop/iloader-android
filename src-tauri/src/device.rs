@@ -43,7 +43,7 @@ pub async fn list_devices() -> Result<Vec<Result<DeviceInfo, AppError>>, AppErro
         return Ok(vec![]);
     }
 
-    let usbmuxd_addr = UsbmuxdAddr::from_env_var().map_err(|e| {
+    let usbmuxd_addr = usbmuxd_addr().map_err(|e| {
         AppError::Usbmuxd(
             "Invalid usbmuxd address from environment".into(),
             e.to_string(),
@@ -171,9 +171,21 @@ pub async fn cancel_pairing(cancel_state: State<'_, PairingCancelToken>) -> Resu
     Ok(())
 }
 
+/// Address providers use to reach a device through usbmuxd. On Android that
+/// is the muxer built into the app.
+fn usbmuxd_addr() -> Result<UsbmuxdAddr, std::net::AddrParseError> {
+    match crate::usbmux::addr_override() {
+        Some(addr) => Ok(addr),
+        None => UsbmuxdAddr::from_env_var(),
+    }
+}
+
 pub async fn get_usbmuxd() -> Result<UsbmuxdConnection, AppError> {
-    UsbmuxdConnection::default()
-        .await
+    let connection = match crate::usbmux::addr_override() {
+        Some(addr) => addr.connect(0).await,
+        None => UsbmuxdConnection::default().await,
+    };
+    connection
         .map_err(|e| AppError::Usbmuxd("Failed to connect to usbmuxd".into(), e.to_string()))
 }
 
@@ -192,6 +204,6 @@ pub async fn get_provider_from_connection(
             AppError::DeviceComsWithMessage("Failed to get device".into(), e.to_string())
         })?;
 
-    let provider = device.to_provider(UsbmuxdAddr::from_env_var().unwrap(), "iloader");
+    let provider = device.to_provider(usbmuxd_addr().unwrap(), "iloader");
     Ok(provider)
 }

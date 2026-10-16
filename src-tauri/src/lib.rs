@@ -11,6 +11,7 @@ mod secure_storage;
 mod error;
 mod logging;
 mod operation;
+mod usbmux;
 
 use crate::{
     account::{
@@ -32,9 +33,13 @@ use tracing_subscriber::{Layer, Registry, fmt, layer::SubscriberExt, util::Subsc
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
+    let builder = tauri::Builder::default().plugin(tauri_plugin_process::init());
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
+    // Android has no usbmuxd; the app brings its own.
+    #[cfg(target_os = "android")]
+    let builder = builder.plugin(usbmux::android::init());
+    builder
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::new().build())

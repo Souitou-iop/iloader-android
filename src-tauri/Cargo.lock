@@ -2626,6 +2626,7 @@ dependencies = [
  "idevice",
  "isideload",
  "keyring",
+ "libc",
  "once_cell",
  "plist",
  "plist-macro",

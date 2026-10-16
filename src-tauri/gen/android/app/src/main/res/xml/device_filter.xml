@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Apple devices (vendor id 0x05ac). Lets Android offer to open iloader when
+     an iPhone is plugged in, and to remember the USB permission. -->
+<resources>
+    <usb-device vendor-id="1452" />
+</resources>
