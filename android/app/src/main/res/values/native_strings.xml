@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings that only exist in the native Android app. The shared ones live in strings.xml (generated). -->
+<resources>
+    <string name="native_app_name">iloader</string>
+    <string name="native_back">Back</string>
+    <string name="native_language_system">System default</string>
+    <string name="native_pair_connecting">Connecting to the device…</string>
+    <string name="native_pair_denied">Trust was denied on the device. Cancel and try again.</string>
+    <string name="native_pair_failed">Pairing failed: %1$s</string>
+    <string name="native_delete_app_id_message">Delete the App ID %1$s?</string>
+    <string name="native_revoke_certificate_message">Revoke the certificate %1$s?</string>
+    <string name="native_ipa_open_failed">Could not open the selected file</string>
+    <string name="native_settings_section_server">Server</string>
+    <string name="native_settings_section_actions">Maintenance</string>
+    <string name="native_settings_section_security">Security</string>
+    <string name="native_device_connection">%1$s · iOS %2$s</string>
+</resources>

@@ -1,0 +1,24 @@
+[package]
+name = "iloader-bridge"
+version = "0.1.0"
+description = "UniFFI bridge between iloader-core and the native Android app"
+authors = ["nab138"]
+edition = "2024"
+publish = false
+
+[lib]
+name = "iloader_bridge"
+crate-type = ["cdylib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+required-features = ["cli"]
+
+[features]
+cli = ["uniffi/cli"]
+
+[dependencies]
+iloader-core = { path = "../../core" }
+uniffi = { version = "0.32", features = ["tokio"] }
+thiserror = "2.0.18"
+plist = "1.8.0"

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="native_app_name">iloader</string>
+    <string name="native_back">返回</string>
+    <string name="native_language_system">跟随系统</string>
+    <string name="native_pair_connecting">正在连接设备…</string>
+    <string name="native_pair_denied">设备上点击了“不信任”。请取消后重试。</string>
+    <string name="native_pair_failed">配对失败：%1$s</string>
+    <string name="native_delete_app_id_message">确定删除 App ID %1$s 吗？</string>
+    <string name="native_revoke_certificate_message">确定吊销证书 %1$s 吗？</string>
+    <string name="native_ipa_open_failed">无法打开所选文件</string>
+    <string name="native_settings_section_server">服务器</string>
+    <string name="native_settings_section_actions">维护</string>
+    <string name="native_settings_section_security">安全</string>
+    <string name="native_device_connection">%1$s · iOS %2$s</string>
+</resources>

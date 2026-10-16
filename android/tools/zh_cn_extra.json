@@ -1,0 +1,70 @@
+{
+  "app.donate": "赞助",
+  "apple_id.no_keyring_available": "此设备无法保存凭据。",
+  "device.pairing_in_progress_header": "正在与 {{device}} 配对...",
+  "device.pairing_in_progress_hint": "请解锁设备并点击“信任”，如有提示请输入锁屏密码。",
+  "device.pairing_cancel": "取消",
+  "device.failed_select": "选择设备失败",
+  "pairing.place_all": "放入所有应用",
+  "settings.anisette_state_not_found": "没有可重置的 Anisette 状态",
+  "settings.delete_stored_rppairing": "删除已保存的配对",
+  "settings.delete_stored_rppairing_message": "确定要删除此设备已保存的配对文件吗？之后需要重新配对。",
+  "settings.deleting_stored_rppairing": "正在删除已保存的配对...",
+  "settings.stored_rppairing_deleted_success": "已删除保存的配对！",
+  "settings.failed_delete_stored_rppairing": "删除已保存的配对失败",
+  "error.suggestions_heading": "建议",
+  "error.suggestions.underage": ["您的 Apple ID 年龄可能未达到使用开发者服务的要求。"],
+  "error.suggestions.account_locked": [
+    "别慌！这通常是多次登录失败导致的，完全无害。",
+    "访问 ((link:https://iforgot.apple.com/)) 解锁您的账号。"
+  ],
+  "error.suggestions.auth": [
+    "请确认账号密码正确后重试，即使您确定它们是正确的。",
+    "如果问题仍然存在，请尝试使用其他 Apple ID。",
+    "不支持安全密钥双重认证。如有可能，请使用未开启双重认证或使用受信任设备验证的 Apple ID。"
+  ],
+  "error.suggestions.download": [
+    "请从 ((link:https://github.com/SideStore/SideStore/releases)) 手动下载 SideStore，然后使用“导入 IPA”按钮安装。"
+  ],
+  "error.suggestions.house_arrest": [
+    "[ios::26.3]请确认设备没有运行 iOS 26.3 开发者测试版，该版本的 house arrest 存在缺陷"
+  ],
+  "error.suggestions.pairing": [
+    "请重新连接设备后再次执行操作。",
+    "请确认设备已设置锁屏密码。",
+    "请确认设备通过 USB 连接，而不是无线连接。"
+  ],
+  "error.suggestions.canceled": [],
+  "error.suggestions.operation_update": [],
+  "error.suggestions.usbmuxd": [
+    "[platform::windows]请确认已安装 ((link:https://apple.co/ms:iTunes)) 并且它能识别您的设备。",
+    "[platform::windows]请卸载 iTunes 和 Apple Mobile Device Support，然后从 Microsoft Store 安装“Apple 设备”。",
+    "[platform::linux]请确认已安装并运行 usbmuxd。"
+  ],
+  "error.suggestions.trust": ["请解锁设备，回到主屏幕，并接受出现的所有信任提示。"],
+  "error.suggestions.device_coms": [
+    "请确认设备已正确连接到电脑。",
+    "拔下并重新连接设备。如果问题仍然存在，请更换 USB 接口和数据线。"
+  ],
+  "error.suggestions.not_logged_in": ["请先登录您的 Apple ID。"],
+  "error.suggestions.no_device_selected": ["请先选择一台设备再继续。"],
+  "error.suggestions.anisette": [
+    "请确认网络连接正常。",
+    "更换 Anisette 服务器，多试几个不同的服务器。",
+    "请确认能在浏览器中访问 ((link:{{anisetteServerUrl}}))。"
+  ],
+  "error.suggestions.keyring": ["请尝试在设置中启用“不使用钥匙串”来绕过此问题。注意这样安全性会降低。"],
+  "error.suggestions.misc": ["请重试。重启应用、电脑或手机也可能有帮助。"],
+  "error.suggestions.admin": ["请尝试以管理员（root）权限运行应用。"],
+  "error.suggestions.filesystem": ["请确认 iloader 有读写文件的权限。"],
+  "error.suggestions.not_enough_app_ids": [
+    "您的可用 App ID 数量不足，无法安装此应用。",
+    "请等待 App ID 在 7 天后过期（无法提前删除），然后重试。",
+    "从 SideStore 内安装应用有时可以减少 App ID 的占用，可以尝试在 SideStore 中安装。"
+  ],
+  "error.suggestions.max_apps": [
+    "免费 Apple ID 同时只能安装 3 个侧载应用。",
+    "请删除其他侧载应用，为此应用腾出空间。",
+    "已过期的应用仍然计入 3 个应用的上限。"
+  ]
+}
