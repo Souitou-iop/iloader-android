@@ -1,3 +1,8 @@
+> **This is an unofficial, experimental Android port of iloader. It is not affiliated with or endorsed by the original author.**
+> iloader is created by [nab138](https://github.com/nab138): the official app is at <https://github.com/nab138/iloader> and <https://iloader.app>. The name and branding belong to the original author (see [LICENSE-BRANDING](LICENSE-BRANDING)).
+>
+> This fork lets an Android phone act as the sideloading host for an iPhone over USB-OTG, with its own built-in `usbmuxd` (see `src-tauri/src/usbmux`). It has **not been tested with a real iPhone yet**.
+
 <a href="https://iloader.app">
   <picture align="left" >
     <source media="(prefers-color-scheme: dark)" srcset="/iloader.svg">
